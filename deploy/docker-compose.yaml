@@ -1,0 +1,24 @@
+version: '3.2'
+
+services:
+  terminator:
+    image: dollarkiller/creeper:latest
+    restart: always
+    environment:
+      MeilisearchAddr: http://meilisearch:7700
+      MeilisearchToken: root
+      Token: my_token
+
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: always
+    environment:
+      MEILI_MASTER_KEY: root                     # 密钥
+      MEILI_MAX_INDEX_SIZE: 1073741824000        # 最大索引大小 1T
+      MEILI_MAX_UDB_SIZE: 1073741824000          # 最大数据库大小 1T
+      MEILI_HTTP_PAYLOAD_SIZE_LIMIT: 1048576000  # 最大请求大小 1G
+    ports:
+      - "7700:7700"
+    volumes:
+      - ./data.ms:/data.ms

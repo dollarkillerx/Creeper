@@ -14,7 +14,7 @@ type creeperConfig struct {
 	MeilisearchToken string `json:"meilisearch_token"`
 
 	FlashSec         int64 `json:"flash_sec"`           // 刷新时间 sec
-	FlashSize        int   `json:"flash_size"`          // 刷新秒数
+	FlashSize        int   `json:"flash_size"`          // 刷新大小
 	MaxFlashPoolSize int   `json:"max_flash_pool_size"` // 最大刷新线程数
 }
 
@@ -80,7 +80,7 @@ func InitConfig() {
 	}
 
 	if CONFIG.MaxFlashPoolSize < 10 {
-		CONFIG.MaxFlashPoolSize = 30
+		CONFIG.MaxFlashPoolSize = 100
 	}
 
 	return

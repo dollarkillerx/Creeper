@@ -124,6 +124,14 @@ func (a *ApiServer) search(ctx *gin.Context) {
 		return
 	}
 
+	if req.Index == "" {
+		ctx.JSON(400, response.UniversalReturn{
+			Code:    -1,
+			Message: "400 参数错误",
+		})
+		return
+	}
+
 	total, data, err := a.ser.SearchLog(req.KeyWord, req.Index, req.Offset, req.Limit, req.StartTime, req.EndTime)
 	if err != nil {
 		ctx.JSON(500, response.UniversalReturn{
