@@ -30,7 +30,7 @@ func InitConfig() {
 
 	token := os.Getenv("Token")
 	if token != "" {
-		CONFIG.ListenAddr = token
+		CONFIG.Token = token
 	}
 
 	meilisearchAddr := os.Getenv("MeilisearchAddr")

@@ -18,20 +18,25 @@ type Server struct {
 	logChannel       chan models.Message
 }
 
-func New(meilsearchClient *meilisearch.Client) *Server {
+func New(meilsearchClient *meilisearch.Client) (*Server, error) {
 	s := &Server{
 		meilsearchClient: meilsearchClient,
 		logChannel:       make(chan models.Message, 1000),
 	}
 
+	_, err := s.meilsearchClient.GetAllIndexes()
+	if err != nil {
+		return nil, err
+	}
+
 	go s.core()
 
-	return s
+	return s, nil
 }
 
 // core 核心服务
 func (s *Server) core() {
-	buf := make([]models.Message, conf.CONFIG.FlashSize)
+	buf := make([]models.Message, 0)
 	timeAfter := time.NewTicker(time.Second * time.Duration(conf.CONFIG.FlashSec))
 
 	for {
@@ -43,7 +48,7 @@ func (s *Server) core() {
 					log.Println(err)
 				}
 
-				buf = make([]models.Message, conf.CONFIG.FlashSize)
+				buf = make([]models.Message, 0)
 			}
 		case data, ex := <-s.logChannel:
 			if !ex {
@@ -57,13 +62,16 @@ func (s *Server) core() {
 					log.Println(err)
 				}
 
-				buf = make([]models.Message, conf.CONFIG.FlashSize)
+				buf = make([]models.Message, 0)
 			}
 		}
 	}
 }
 
 func (s *Server) logs(msg []models.Message) error {
+	if len(msg) == 0 {
+		return nil
+	}
 	insMap := map[string][]models.Message{}
 	for i := range msg {
 		idx := i
@@ -80,6 +88,9 @@ func (s *Server) logs(msg []models.Message) error {
 		k := i
 		insData := insMap[k]
 		poolFunc.Send(func() {
+			if len(insData) == 0 {
+				return
+			}
 			_, err := s.meilsearchClient.Index(k).AddDocuments(insData)
 			if err != nil {
 				log.Printf("Insert :%s  Error: %s  Error Count: %d \n", k, err.Error(), len(insData))
@@ -96,6 +107,9 @@ func (s *Server) logs(msg []models.Message) error {
 // Log 记录日志
 func (s *Server) Log(msg models.Message) {
 	msg.ID = xid.New().String()
+	now := time.Now()
+	msg.CreateAt = now.Unix()
+	msg.CreateAtString = now.Format("2006-01-02 15:04:05")
 
 	go func() {
 		s.logChannel <- msg
@@ -190,7 +204,7 @@ br:
 }
 
 func (s *Server) AllIndex() []string {
-	var r []string
+	r := make([]string, 0)
 	indexes, err := s.meilsearchClient.GetAllIndexes()
 	if err != nil {
 		return r
