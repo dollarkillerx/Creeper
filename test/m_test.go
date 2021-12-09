@@ -1,14 +1,86 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/dollarkillerx/creeper/internal/models"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/rs/xid"
 )
+
+func TestMeilisearchInsert3(t *testing.T) {
+	client := meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:   "http://127.0.0.1:7700",
+		APIKey: "root",
+	})
+
+	client.DeleteIndex("movies3")
+
+	index := client.Index("movies3")
+
+	var p []models.Message
+	for i := 0; i < 100; i++ {
+		time.Sleep(time.Millisecond * 20)
+		p = append(p, models.Message{
+			ID:       xid.New().String(),
+			Message:  fmt.Sprintf("hello: %d", i),
+			CreateAt: time.Now().UnixNano(),
+		})
+	}
+
+	update, err := index.AddDocuments(p)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println(update.UpdateID)
+}
+
+func TestMeilisearchLogSlimming(t *testing.T) {
+	client := meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:   "http://127.0.0.1:7700",
+		APIKey: "root",
+	})
+
+	index := client.Index("movies3")
+
+	_, err := index.UpdateFilterableAttributes(&[]string{"create_at"})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var fil interface{}
+	fil = "create_at > 1639039544267782960 AND create_at < 1639039544510021600"
+
+	searchRes, err := index.Search("",
+		&meilisearch.SearchRequest{
+			Filter: fil,
+			Limit:  0,
+			Offset: 1,
+		},
+	)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(len(searchRes.Hits))
+
+	fmt.Println(searchRes.NbHits)
+
+	marshal, err := json.Marshal(searchRes.Hits)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(string(marshal))
+}
 
 // Meilisearch 必须要有ID
 func TestMeilisearchInsert2(t *testing.T) {
@@ -147,4 +219,26 @@ func TestMeilisearchSearch2(t *testing.T) {
 
 	fmt.Println(searchRes.Hits)
 	fmt.Println(len(searchRes.Hits))
+}
+
+func TestTime(t *testing.T) {
+	timer := time.NewTimer(time.Second)
+
+	for {
+		select {
+		case <-timer.C:
+			fmt.Println("aaa")
+		}
+	}
+}
+
+func TestTime2(t *testing.T) {
+	timer := time.NewTicker(time.Second)
+
+	for {
+		select {
+		case <-timer.C:
+			fmt.Println("aaa")
+		}
+	}
 }
