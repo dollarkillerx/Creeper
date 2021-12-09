@@ -13,6 +13,30 @@ import (
 	"github.com/rs/xid"
 )
 
+func TestMeilisearchInsert4(t *testing.T) {
+	client := meilisearch.NewClient(meilisearch.ClientConfig{
+		Host:   "http://127.0.0.1:7700",
+		APIKey: "root",
+	})
+
+	indexes, err := client.GetAllIndexes()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	printAll(indexes)
+
+}
+
+func printAll(i interface{}) {
+	marshal, err := json.Marshal(i)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(string(marshal))
+}
+
 func TestMeilisearchInsert3(t *testing.T) {
 	client := meilisearch.NewClient(meilisearch.ClientConfig{
 		Host:   "http://127.0.0.1:7700",
@@ -50,10 +74,10 @@ func TestMeilisearchLogSlimming(t *testing.T) {
 
 	index := client.Index("movies3")
 
-	_, err := index.UpdateFilterableAttributes(&[]string{"create_at"})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	rankingRules := []string{"create_at"}
+	index.UpdateFilterableAttributes(&rankingRules)
+	index.UpdateRankingRules(&rankingRules)
+	index.UpdateSortableAttributes(&rankingRules)
 
 	var fil interface{}
 	fil = "create_at > 1639039544267782960 AND create_at < 1639039544510021600"
@@ -63,6 +87,7 @@ func TestMeilisearchLogSlimming(t *testing.T) {
 			Filter: fil,
 			Limit:  0,
 			Offset: 1,
+			Sort:   []string{"create_at:desc"},
 		},
 	)
 

@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/dollarkillerx/async_utils"
@@ -159,16 +160,45 @@ func (s *Server) SearchLog(keyWord string, idx string, offset int64, limit int64
 		filter = fmt.Sprintf("create_at <= %d ", endTime)
 	}
 
+	bri := 0
+br:
 	searchRes, err := s.meilsearchClient.Index(idx).Search(keyWord,
 		&meilisearch.SearchRequest{
 			Filter: filter,
 			Limit:  limit,
 			Offset: offset,
+			Sort:   []string{"create_at:desc"},
 		},
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "create_at") {
+			if bri >= 3 {
+				return 0, nil, err
+			}
+			rankingRules := []string{"create_at"}
+			s.meilsearchClient.Index(idx).UpdateFilterableAttributes(&rankingRules)
+			s.meilsearchClient.Index(idx).UpdateRankingRules(&rankingRules)
+			s.meilsearchClient.Index(idx).UpdateSortableAttributes(&rankingRules)
+			time.Sleep(time.Second)
+			bri += 1
+			goto br
+		}
 		return 0, nil, err
 	}
 
 	return searchRes.NbHits, searchRes.Hits, nil
+}
+
+func (s *Server) AllIndex() []string {
+	var r []string
+	indexes, err := s.meilsearchClient.GetAllIndexes()
+	if err != nil {
+		return r
+	}
+
+	for _, v := range indexes {
+		r = append(r, v.UID)
+	}
+
+	return r
 }
