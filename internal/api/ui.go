@@ -1,3 +1,31 @@
+package api
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/dollarkillerx/creeper/internal/conf"
+	"github.com/gin-gonic/gin"
+)
+
+func (a *ApiServer) webUi(ctx *gin.Context) {
+
+	index := a.ser.AllIndex()
+
+	htm := strings.ReplaceAll(uiTemp, `{{$.Token}}`, conf.CONFIG.Token)
+
+	idx := ""
+	for i, v := range index {
+		idx += fmt.Sprintf(`<option value="%d">%s</option>`, i, v)
+	}
+
+	htm = strings.ReplaceAll(htm, `{{$.Index}}`, idx)
+
+	ctx.Header("content-type", "text/html charset=utf-8")
+	ctx.Writer.Write([]byte(htm))
+}
+
+var uiTemp = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -90,7 +118,7 @@
         </tr>
         </thead>
         <tbody id="tt">
-
+			
         </tbody>
     </table>
 </div>
@@ -153,3 +181,4 @@
 </script>
 </body>
 </html>
+`

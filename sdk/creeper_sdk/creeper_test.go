@@ -19,7 +19,7 @@ func TestCreeperIndex(t *testing.T) {
 func TestCreeperLog(t *testing.T) {
 	sdk := New("http://127.0.0.1:8745", "my_token")
 	for i := 0; i < 2000; i++ {
-		sdk.Log("creeper", fmt.Sprintf("hello world %d", i))
+		sdk.Log("creeper3", fmt.Sprintf("hello world %d", i))
 	}
 }
 

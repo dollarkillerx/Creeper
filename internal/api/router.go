@@ -1,10 +1,13 @@
 package api
 
 import (
+	"github.com/dollarkillerx/creeper/internal/conf"
 	"github.com/dollarkillerx/creeper/internal/models"
 	"github.com/dollarkillerx/creeper/internal/request"
 	"github.com/dollarkillerx/creeper/internal/response"
 	"github.com/gin-gonic/gin"
+
+	"time"
 )
 
 func (a *ApiServer) router() {
@@ -16,6 +19,15 @@ func (a *ApiServer) router() {
 		v1.POST("/log_slimming", a.logSlimming)
 		v1.POST("/log", a.log)
 		v1.POST("/search", a.search)
+		v1.POST("/web_search", a.webSearch)
+	}
+
+	if conf.CONFIG.Token != "" {
+		a.app.GET("/", gin.BasicAuth(gin.Accounts{
+			"token": conf.CONFIG.Token,
+		}), a.webUi)
+	} else {
+		a.app.GET("/", a.webUi)
 	}
 }
 
@@ -133,6 +145,72 @@ func (a *ApiServer) search(ctx *gin.Context) {
 	}
 
 	total, data, err := a.ser.SearchLog(req.KeyWord, req.Index, req.Offset, req.Limit, req.StartTime, req.EndTime)
+	if err != nil {
+		ctx.JSON(500, response.UniversalReturn{
+			Code:    -1,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, response.UniversalReturn{
+		Data: response.LogRespModel{
+			Total: total,
+			List:  data,
+		},
+	})
+}
+
+var timeTemplate1 = "20060102"
+
+func (a *ApiServer) webSearch(ctx *gin.Context) {
+	var req request.SearchRequestV2
+	err := ctx.BindJSON(&req)
+	if err != nil {
+		ctx.JSON(400, response.UniversalReturn{
+			Code:    -1,
+			Message: "400 参数错误",
+		})
+		return
+	}
+
+	if req.Index == "" {
+		ctx.JSON(400, response.UniversalReturn{
+			Code:    -1,
+			Message: "400 参数错误",
+		})
+		return
+	}
+
+	var startTimeInt int64
+	var endTimeInt int64
+
+	if req.StartTime != "" {
+		startTime, err := time.ParseInLocation(timeTemplate1, req.StartTime, time.Local)
+		if err != nil {
+			ctx.JSON(400, response.UniversalReturn{
+				Code:    -1,
+				Message: "400 startTime 参数错误",
+			})
+			return
+		}
+
+		startTimeInt = startTime.Unix()
+	}
+
+	if req.EndTime != "" {
+		endTime, err := time.ParseInLocation(timeTemplate1, req.EndTime, time.Local)
+		if err != nil {
+			ctx.JSON(400, response.UniversalReturn{
+				Code:    -1,
+				Message: "400 endTime 参数错误",
+			})
+			return
+		}
+		endTimeInt = endTime.Unix()
+	}
+
+	total, data, err := a.ser.SearchLog(req.KeyWord, req.Index, req.Offset, req.Limit, startTimeInt, endTimeInt)
 	if err != nil {
 		ctx.JSON(500, response.UniversalReturn{
 			Code:    -1,

@@ -23,3 +23,13 @@ type SearchRequest struct {
 	StartTime int64 `json:"start_time"`
 	EndTime   int64 `json:"end_time"`
 }
+
+type SearchRequestV2 struct {
+	Index   string `json:"index"`
+	KeyWord string `json:"key_word"`
+
+	Offset    int64  `json:"offset"`
+	Limit     int64  `json:"limit"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}
