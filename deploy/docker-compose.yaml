@@ -10,6 +10,8 @@ services:
       MeilisearchAddr: http://meilisearch:7700
       MeilisearchToken: root
       Token: my_token
+    depends_on:
+      - meilisearch
 
 
   meilisearch:
