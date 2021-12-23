@@ -2,7 +2,7 @@ version: '3.2'
 
 services:
   rlog:
-    image: dollarkiller/creeper:latest
+    image: dollarkiller/creeper_rlog:latest
     restart: always
     volumes:
       - ./log/:/app/log/

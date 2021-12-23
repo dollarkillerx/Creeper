@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/dollarkillerx/creeper/internal/request"
 	"github.com/dollarkillerx/creeper/internal/response"
@@ -23,6 +24,9 @@ func New(addr string, token string) *CreeperSdk {
 }
 
 func (c *CreeperSdk) Log(index string, message string) error {
+	if strings.TrimSpace(message) == "" {
+		return nil
+	}
 	code, data, err := urllib.Post(fmt.Sprintf("%s/api/v1/log", c.addr)).KeepAlives().SetHeader("token", c.token).SetJsonObject(request.LogRequest{
 		Index:   index,
 		Message: message,
