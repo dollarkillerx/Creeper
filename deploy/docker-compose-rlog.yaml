@@ -7,7 +7,7 @@ services:
     volumes:
       - ./log/:/app/log/
     environment:
-      CreeperAddr: http://192.168.88.203:8745
-      CreeperToken: ""
-      CreeperIndex: test_index
-      LogPath: /app/log/a.log   # TODO 修改此处
+      CreeperAddr: http://192.168.88.203:8745   # creeper 服务地址
+      CreeperToken: ""                        # creeper服务 token  (没有可不填)
+      CreeperIndex: test_index        #  当前服务 将log 放入 creeper 那个index中
+      LogPath: /app/log/a.log          # 修改此处 填写我们需要读取 log文件的地址
