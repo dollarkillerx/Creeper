@@ -267,3 +267,11 @@ func TestTime2(t *testing.T) {
 		}
 	}
 }
+
+func TestTime3x(t *testing.T) {
+	now := time.Now()
+	fmt.Println(now.Unix())
+	fmt.Println(now.UnixMilli())
+	fmt.Println(now.UnixNano())
+	fmt.Println(now.UnixMicro())
+}

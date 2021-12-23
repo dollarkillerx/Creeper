@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Llongfile)
 	conf.InitConfig()
 
 	client := meilisearch.NewClient(meilisearch.ClientConfig{

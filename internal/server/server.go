@@ -108,7 +108,7 @@ func (s *Server) logs(msg []models.Message) error {
 func (s *Server) Log(msg models.Message) {
 	msg.ID = xid.New().String()
 	now := time.Now()
-	msg.CreateAt = now.Unix()
+	msg.CreateAt = now.UnixMilli()
 	msg.CreateAtString = now.Format("2006-01-02 15:04:05")
 
 	go func() {
